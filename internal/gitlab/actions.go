@@ -4,6 +4,12 @@ import (
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/dispatcher"
 )
 
+const ReadyForReview = 1
+const InReview = 1
+const DevelopmentDone = 1
+const ReviewOK = 1
+const ReviewNotOK = 1
+
 type Action interface {
 	Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event
 }
@@ -13,7 +19,7 @@ type OpenAction struct{}
 func (a *OpenAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
 	return &dispatcher.Event{
 		TicketNumber: ticketNumber,
-		Status:       "Ready for Review",
+		Status:       ReadyForReview,
 	}
 }
 
@@ -22,7 +28,7 @@ type ReopenAction struct{}
 func (a *ReopenAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
 	return &dispatcher.Event{
 		TicketNumber: ticketNumber,
-		Status:       "Ready for Review",
+		Status:       ReadyForReview,
 	}
 }
 
@@ -32,7 +38,7 @@ func (a *UpdateAction) Execute(ticketNumber string, event *MergeRequestEvent) *d
 	if len(event.Changes.Reviewers.Previous) == 0 && len(event.Changes.Reviewers.Current) > 0 {
 		return &dispatcher.Event{
 			TicketNumber:  ticketNumber,
-			Status:        "In Review",
+			Status:        InReview,
 			ReviewerEmail: event.Changes.Reviewers.Current[0].Email,
 		}
 	} else {
@@ -45,7 +51,7 @@ type MergeAction struct{}
 func (a *MergeAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
 	return &dispatcher.Event{
 		TicketNumber: ticketNumber,
-		Status:       "Development done",
+		Status:       DevelopmentDone,
 	}
 }
 
@@ -54,7 +60,7 @@ type ApprovedAction struct{}
 func (a *ApprovedAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
 	return &dispatcher.Event{
 		TicketNumber: ticketNumber,
-		Status:       "Review OK",
+		Status:       ReviewOK,
 	}
 }
 
@@ -63,7 +69,7 @@ type UnapprovedAction struct{}
 func (a *UnapprovedAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
 	return &dispatcher.Event{
 		TicketNumber: ticketNumber,
-		Status:       "In Review",
+		Status:       InReview,
 	}
 }
 
@@ -72,7 +78,7 @@ type CloseAction struct{}
 func (a *CloseAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
 	return &dispatcher.Event{
 		TicketNumber: ticketNumber,
-		Status:       "Review not OK",
+		Status:       ReviewNotOK,
 	}
 }
 

@@ -2,6 +2,6 @@ package dispatcher
 
 type Event struct {
 	TicketNumber  string
-	Status        string
+	Status        int
 	ReviewerEmail string
 }
