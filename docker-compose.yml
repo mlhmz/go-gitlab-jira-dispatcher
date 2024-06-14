@@ -1,0 +1,18 @@
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    network_mode: "host"
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      - GITLAB_ROOT_PASSWORD=${ROOT_PASSWORD}
+    volumes:
+      - config:/etc/gitlab
+      - logs:/var/log/gitlab
+      - data:/var/opt/gitlab
+
+volumes:
+  config:
+  logs:
+  data:
