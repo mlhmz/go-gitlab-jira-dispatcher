@@ -3,7 +3,7 @@ package gitlab_test
 import (
 	"testing"
 
-	"mlhmz.xyz/go-gitlab-jira-dispatcher/internal/gitlab"
+	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/gitlab"
 )
 
 var goodTitles = map[string]string{
