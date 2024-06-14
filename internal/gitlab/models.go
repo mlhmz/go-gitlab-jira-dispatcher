@@ -2,7 +2,9 @@ package gitlab
 
 type MergeRequestEvent struct {
 	ObjectKind       string           `json:"object_kind"`
+	Repository       Repository       `json:"repository"`
 	ObjectAttributes ObjectAttributes `json:"object_attributes"`
+	Changes          Changes          `json:"changes"`
 }
 
 type ObjectAttributes struct {
@@ -18,6 +20,10 @@ type Changes struct {
 type UserChange struct {
 	Previous []User `json:"previous"`
 	Current  []User `json:"current"`
+}
+
+type Repository struct {
+	Name string `json:"name"`
 }
 
 type User struct {
