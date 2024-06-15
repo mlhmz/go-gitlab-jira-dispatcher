@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
+	"github.com/joho/godotenv"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/dispatcher"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/gitlab"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/jira"
@@ -14,8 +16,13 @@ import (
 func main() {
 	app := fiber.New()
 
+	var jiraUrl string
+	var jiraApiToken string
+
+	loadEnvironment(&jiraUrl, &jiraApiToken)
+
 	publisher := gitlab.NewPublisher()
-	publisher.Register(jira.NewJiraListener(jirav2.NewRestClient()))
+	publisher.Register(jira.NewJiraListener(jirav2.NewRestClient(jiraUrl, jiraApiToken)))
 
 	app.Post("/webhook", func(c *fiber.Ctx) error {
 		var event gitlab.MergeRequestEvent
@@ -35,4 +42,13 @@ func main() {
 	})
 
 	app.Listen(":3000")
+}
+
+func loadEnvironment(jiraUrl *string, jiraApiToken *string) {
+	godotenv.Load(".env")
+
+	*jiraUrl = os.Getenv("JIRA_URL")
+	*jiraApiToken = os.Getenv("JIRA_API_TOKEN")
+
+	log.Debugf("Jira URL: %s, Jira Token: %s", *jiraUrl, *jiraApiToken)
 }
