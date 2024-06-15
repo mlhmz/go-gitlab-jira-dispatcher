@@ -16,7 +16,7 @@ var transitions = store.Transitions{
 }
 
 func TestWebhookPublisher_Register(t *testing.T) {
-	publisher := NewPublisher(&transitions)
+	publisher := NewPublisher()
 	listener := &mockListener{}
 
 	publisher.Register(listener)
@@ -138,13 +138,13 @@ var successTestCases = []SuccessTestCase{
 
 func TestWebhookPublisher_ProcessWebhook(t *testing.T) {
 	for _, testCase := range successTestCases {
-		publisher := NewPublisher(&transitions)
+		publisher := NewPublisher()
 		listener := &mockListener{}
 		dispatcherEvent := &dispatcher.Event{}
 
 		publisher.Register(listener)
 
-		err := publisher.ProcessWebhook(&testCase.input, dispatcherEvent)
+		err := publisher.ProcessWebhook(&testCase.input, dispatcherEvent, &transitions)
 
 		if err != nil {
 			t.Errorf("Expected no error, got %v", err)
@@ -208,13 +208,13 @@ var errorTestCases = []ErrorTestCase{
 
 func TestWebhookPublisher_ProcessWebhook_ReturnsError_OnErrorCases(t *testing.T) {
 	for _, testCase := range errorTestCases {
-		publisher := NewPublisher(&transitions)
+		publisher := NewPublisher()
 		listener := &mockListener{}
 		dispatcherEvent := &dispatcher.Event{}
 
 		publisher.Register(listener)
 
-		err := publisher.ProcessWebhook(&testCase.input, dispatcherEvent)
+		err := publisher.ProcessWebhook(&testCase.input, dispatcherEvent, &transitions)
 
 		if err == nil {
 			t.Errorf("Expected an error, got %v", err)

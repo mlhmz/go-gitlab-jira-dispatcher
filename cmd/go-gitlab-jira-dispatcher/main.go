@@ -22,13 +22,14 @@ func main() {
 
 	loadEnvironment(&jiraUrl, &jiraApiToken)
 
-	publisher := gitlab.NewPublisher(&store.Transitions{
+	transitions := store.Transitions{
 		ReadyForReview:  2,
 		InReview:        3,
 		DevelopmentDone: 31,
 		ReviewOK:        5,
 		ReviewNotOK:     4,
-	})
+	}
+	publisher := gitlab.NewPublisher()
 	publisher.Register(jira.NewJiraListener(jirav2.NewRestClient(jiraUrl, jiraApiToken)))
 
 	app.Post("/webhook", func(c *fiber.Ctx) error {
@@ -41,7 +42,7 @@ func main() {
 		}
 
 		result := dispatcher.Event{}
-		if err := publisher.ProcessWebhook(&event, &result); err != nil {
+		if err := publisher.ProcessWebhook(&event, &result, &transitions); err != nil {
 			log.Warn(err)
 			return c.Status(400).SendString(err.Error())
 		}

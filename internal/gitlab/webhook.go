@@ -9,21 +9,18 @@ import (
 )
 
 type WebhookPublisher struct {
-	listeners   []dispatcher.Listener
-	transitions *store.Transitions
+	listeners []dispatcher.Listener
 }
 
-func NewPublisher(transitions *store.Transitions) *WebhookPublisher {
-	return &WebhookPublisher{
-		transitions: transitions,
-	}
+func NewPublisher() *WebhookPublisher {
+	return &WebhookPublisher{}
 }
 
 func (publisher *WebhookPublisher) Register(listener dispatcher.Listener) {
 	publisher.listeners = append(publisher.listeners, listener)
 }
 
-func (publisher *WebhookPublisher) ProcessWebhook(mrEvent *MergeRequestEvent, dispatcherEvent *dispatcher.Event) error {
+func (publisher *WebhookPublisher) ProcessWebhook(mrEvent *MergeRequestEvent, dispatcherEvent *dispatcher.Event, transitions *store.Transitions) error {
 	if mrEvent.ObjectKind != "merge_request" {
 		return fmt.Errorf("'%s' is a invalid event type. Only 'merge_request' events are supported",
 			mrEvent.ObjectKind)
@@ -40,7 +37,7 @@ func (publisher *WebhookPublisher) ProcessWebhook(mrEvent *MergeRequestEvent, di
 		return fmt.Errorf("no action found for the event '%s'", mrEvent.ObjectAttributes.Action)
 	}
 
-	if actionResult := action.Execute(&ticketNumber, mrEvent, publisher.transitions); actionResult != nil {
+	if actionResult := action.Execute(&ticketNumber, mrEvent, transitions); actionResult != nil {
 		*dispatcherEvent = *actionResult
 		log.Infof("Dispatched event for the ticket '%s' with the status '%d' and the reviewer email '%s'",
 			dispatcherEvent.TicketNumber, dispatcherEvent.StatusID, dispatcherEvent.ReviewerEmail)
