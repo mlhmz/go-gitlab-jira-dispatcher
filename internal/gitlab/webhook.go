@@ -19,12 +19,6 @@ func (publisher *WebhookPublisher) Register(listener dispatcher.Listener) {
 	publisher.listeners = append(publisher.listeners, listener)
 }
 
-func (publisher *WebhookPublisher) Notify(event *dispatcher.Event) {
-	for _, listener := range publisher.listeners {
-		listener.Accept(event)
-	}
-}
-
 func (publisher *WebhookPublisher) ProcessWebhook(mrEvent *MergeRequestEvent, dispatcherEvent *dispatcher.Event) error {
 	if mrEvent.ObjectKind != "merge_request" {
 		return fmt.Errorf("'%s' is a invalid event type. Only 'merge_request' events are supported",
@@ -46,7 +40,13 @@ func (publisher *WebhookPublisher) ProcessWebhook(mrEvent *MergeRequestEvent, di
 		*dispatcherEvent = *actionResult
 		log.Infof("Dispatched event for the ticket '%s' with the status '%s' and the reviewer email '%s'",
 			dispatcherEvent.TicketNumber, dispatcherEvent.StatusID, dispatcherEvent.ReviewerEmail)
-		publisher.Notify(dispatcherEvent)
+		publisher.notify(dispatcherEvent)
 	}
 	return nil
+}
+
+func (publisher *WebhookPublisher) notify(event *dispatcher.Event) {
+	for _, listener := range publisher.listeners {
+		listener.Accept(event)
+	}
 }
