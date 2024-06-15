@@ -1,39 +1,36 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
+	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/dispatcher"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/gitlab"
+	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/jira"
 )
 
 func main() {
 	app := fiber.New()
 
+	publisher := gitlab.NewPublisher()
+	publisher.Register(jira.NewJiraListener())
+
 	app.Post("/webhook", func(c *fiber.Ctx) error {
-		var event *gitlab.MergeRequestEvent
+		var event gitlab.MergeRequestEvent
 
 		if err := c.BodyParser(&event); err != nil {
-			log.Error("Failed to parse webhook event", "error", err)
-			return c.SendStatus(400)
+			formattedError := fmt.Errorf("failed to parse webhook event error: %s", err)
+			log.Error(formattedError)
+			return c.Status(500).SendString(formattedError.Error())
 		}
 
-		var ticketNumber string
-		if err := gitlab.ResolveJiraTicketFromTitle(event.ObjectAttributes.Title, &ticketNumber); err != nil {
+		result := dispatcher.Event{}
+		if err := publisher.ProcessWebhook(&event, &result); err != nil {
 			log.Warn(err)
-			return c.SendStatus(400)
+			return c.Status(400).SendString(err.Error())
 		}
-
-		action := gitlab.NewAction(event.ObjectAttributes.Action)
-
-		result := action.Execute(ticketNumber, event)
-
-		if result != nil {
-			log.Infof("Dispatched event for the ticket '%s' with the status '%s' and the reviewer email '%s'",
-				result.TicketNumber, result.StatusID, result.ReviewerEmail)
-			return c.JSON(result)
-		}
-
-		return c.SendStatus(400)
+		return c.JSON(result)
 	})
 
 	app.Listen(":3000")
