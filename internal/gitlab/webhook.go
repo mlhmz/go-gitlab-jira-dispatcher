@@ -42,7 +42,7 @@ func (publisher *WebhookPublisher) ProcessWebhook(mrEvent *MergeRequestEvent, di
 		return fmt.Errorf("no action found for the event '%s'", mrEvent.ObjectAttributes.Action)
 	}
 
-	if actionResult := action.Execute(ticketNumber, mrEvent); actionResult != nil {
+	if actionResult := action.Execute(&ticketNumber, mrEvent); actionResult != nil {
 		*dispatcherEvent = *actionResult
 		log.Infof("Dispatched event for the ticket '%s' with the status '%s' and the reviewer email '%s'",
 			dispatcherEvent.TicketNumber, dispatcherEvent.StatusID, dispatcherEvent.ReviewerEmail)
