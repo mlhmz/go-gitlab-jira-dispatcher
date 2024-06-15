@@ -8,13 +8,14 @@ import (
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/dispatcher"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/gitlab"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/jira"
+	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/jira/jirav2"
 )
 
 func main() {
 	app := fiber.New()
 
 	publisher := gitlab.NewPublisher()
-	publisher.Register(jira.NewJiraListener())
+	publisher.Register(jira.NewJiraListener(jirav2.NewRestClient()))
 
 	app.Post("/webhook", func(c *fiber.Ctx) error {
 		var event gitlab.MergeRequestEvent
