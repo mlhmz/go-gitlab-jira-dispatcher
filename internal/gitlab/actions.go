@@ -2,16 +2,11 @@ package gitlab
 
 import (
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/dispatcher"
+	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/store"
 )
 
-const ReadyForReview = 1
-const InReview = 2
-const DevelopmentDone = 3
-const ReviewOK = 4
-const ReviewNotOK = 5
-
 type Action interface {
-	Execute(ticketNumber *string, event *MergeRequestEvent) *dispatcher.Event
+	Execute(ticketNumber *string, event *MergeRequestEvent, transitions *store.Transitions) *dispatcher.Event
 }
 
 func NewAction(action string) Action {
@@ -37,19 +32,19 @@ func NewAction(action string) Action {
 
 type OpenAction struct{}
 
-func (a *OpenAction) Execute(ticketNumber *string, event *MergeRequestEvent) *dispatcher.Event {
+func (a *OpenAction) Execute(ticketNumber *string, event *MergeRequestEvent, transitions *store.Transitions) *dispatcher.Event {
 	return &dispatcher.Event{
 		TicketNumber: *ticketNumber,
-		StatusID:     ReadyForReview,
+		StatusID:     transitions.ReadyForReview,
 	}
 }
 
 type ReopenAction struct{}
 
-func (a *ReopenAction) Execute(ticketNumber *string, event *MergeRequestEvent) *dispatcher.Event {
+func (a *ReopenAction) Execute(ticketNumber *string, event *MergeRequestEvent, transitions *store.Transitions) *dispatcher.Event {
 	return &dispatcher.Event{
 		TicketNumber: *ticketNumber,
-		StatusID:     ReadyForReview,
+		StatusID:     transitions.ReadyForReview,
 	}
 }
 
@@ -58,11 +53,11 @@ type UpdateAction struct{}
 // GitLab will send a merge request event for every update that is triggered (e.g. changing the title)
 // In order to detect if a reviewer is actually added to the merge request, we need to check first, if there
 // was no reviewer before and if there is a reviewer now.
-func (a *UpdateAction) Execute(ticketNumber *string, event *MergeRequestEvent) *dispatcher.Event {
+func (a *UpdateAction) Execute(ticketNumber *string, event *MergeRequestEvent, transitions *store.Transitions) *dispatcher.Event {
 	if len(event.Changes.Reviewers.Previous) == 0 && len(event.Changes.Reviewers.Current) > 0 {
 		return &dispatcher.Event{
 			TicketNumber:  *ticketNumber,
-			StatusID:      InReview,
+			StatusID:      transitions.InReview,
 			ReviewerEmail: event.Changes.Reviewers.Current[0].Email,
 		}
 	} else {
@@ -72,36 +67,36 @@ func (a *UpdateAction) Execute(ticketNumber *string, event *MergeRequestEvent) *
 
 type MergeAction struct{}
 
-func (a *MergeAction) Execute(ticketNumber *string, event *MergeRequestEvent) *dispatcher.Event {
+func (a *MergeAction) Execute(ticketNumber *string, event *MergeRequestEvent, transitions *store.Transitions) *dispatcher.Event {
 	return &dispatcher.Event{
 		TicketNumber: *ticketNumber,
-		StatusID:     DevelopmentDone,
+		StatusID:     transitions.DevelopmentDone,
 	}
 }
 
 type ApprovedAction struct{}
 
-func (a *ApprovedAction) Execute(ticketNumber *string, event *MergeRequestEvent) *dispatcher.Event {
+func (a *ApprovedAction) Execute(ticketNumber *string, event *MergeRequestEvent, transitions *store.Transitions) *dispatcher.Event {
 	return &dispatcher.Event{
 		TicketNumber: *ticketNumber,
-		StatusID:     ReviewOK,
+		StatusID:     transitions.ReviewOK,
 	}
 }
 
 type UnapprovedAction struct{}
 
-func (a *UnapprovedAction) Execute(ticketNumber *string, event *MergeRequestEvent) *dispatcher.Event {
+func (a *UnapprovedAction) Execute(ticketNumber *string, event *MergeRequestEvent, transitions *store.Transitions) *dispatcher.Event {
 	return &dispatcher.Event{
 		TicketNumber: *ticketNumber,
-		StatusID:     InReview,
+		StatusID:     transitions.InReview,
 	}
 }
 
 type CloseAction struct{}
 
-func (a *CloseAction) Execute(ticketNumber *string, event *MergeRequestEvent) *dispatcher.Event {
+func (a *CloseAction) Execute(ticketNumber *string, event *MergeRequestEvent, transitions *store.Transitions) *dispatcher.Event {
 	return &dispatcher.Event{
 		TicketNumber: *ticketNumber,
-		StatusID:     ReviewNotOK,
+		StatusID:     transitions.ReviewNotOK,
 	}
 }

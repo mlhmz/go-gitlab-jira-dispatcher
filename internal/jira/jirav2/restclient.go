@@ -24,7 +24,7 @@ func NewRestClient(url string, token string) *RestClient {
 func (r *RestClient) TransitionIssue(ticketNumber string, statusID int, reviewerEmail string) error {
 	url := r.url + Prefix + fmt.Sprintf("/issue/%s/transitions", ticketNumber)
 
-	log.Info(url)
+	log.Debugf("Requesting to jira with the following url: %s", url)
 
 	body := &TransitionPayload{
 		Transition: Transition{
@@ -43,7 +43,7 @@ func (r *RestClient) TransitionIssue(ticketNumber string, statusID int, reviewer
 		return err[0]
 	}
 
-	log.Infof("Transitioned issue '%s' to status '%d' with status code '%d' and the message '%s'",
+	log.Infof("Jira v2 Restclient: Transitioned issue '%s' to status '%d' with status code '%d' and the message '%s'",
 		ticketNumber, statusID, status, string(res[:]))
 
 	return nil

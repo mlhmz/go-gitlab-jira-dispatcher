@@ -5,14 +5,18 @@ import (
 
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/dispatcher"
+	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/store"
 )
 
 type WebhookPublisher struct {
-	listeners []dispatcher.Listener
+	listeners   []dispatcher.Listener
+	transitions *store.Transitions
 }
 
-func NewPublisher() *WebhookPublisher {
-	return &WebhookPublisher{}
+func NewPublisher(transitions *store.Transitions) *WebhookPublisher {
+	return &WebhookPublisher{
+		transitions: transitions,
+	}
 }
 
 func (publisher *WebhookPublisher) Register(listener dispatcher.Listener) {
@@ -36,9 +40,9 @@ func (publisher *WebhookPublisher) ProcessWebhook(mrEvent *MergeRequestEvent, di
 		return fmt.Errorf("no action found for the event '%s'", mrEvent.ObjectAttributes.Action)
 	}
 
-	if actionResult := action.Execute(&ticketNumber, mrEvent); actionResult != nil {
+	if actionResult := action.Execute(&ticketNumber, mrEvent, publisher.transitions); actionResult != nil {
 		*dispatcherEvent = *actionResult
-		log.Infof("Dispatched event for the ticket '%s' with the status '%s' and the reviewer email '%s'",
+		log.Infof("Dispatched event for the ticket '%s' with the status '%d' and the reviewer email '%s'",
 			dispatcherEvent.TicketNumber, dispatcherEvent.StatusID, dispatcherEvent.ReviewerEmail)
 		publisher.notify(dispatcherEvent)
 	}

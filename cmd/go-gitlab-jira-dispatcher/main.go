@@ -11,6 +11,7 @@ import (
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/gitlab"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/jira"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/jira/jirav2"
+	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/store"
 )
 
 func main() {
@@ -21,7 +22,13 @@ func main() {
 
 	loadEnvironment(&jiraUrl, &jiraApiToken)
 
-	publisher := gitlab.NewPublisher()
+	publisher := gitlab.NewPublisher(&store.Transitions{
+		ReadyForReview:  2,
+		InReview:        3,
+		DevelopmentDone: 31,
+		ReviewOK:        5,
+		ReviewNotOK:     4,
+	})
 	publisher.Register(jira.NewJiraListener(jirav2.NewRestClient(jiraUrl, jiraApiToken)))
 
 	app.Post("/webhook", func(c *fiber.Ctx) error {

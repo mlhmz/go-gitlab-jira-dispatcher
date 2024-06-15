@@ -4,10 +4,19 @@ import (
 	"testing"
 
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/dispatcher"
+	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/store"
 )
 
+var transitions = store.Transitions{
+	ReadyForReview:  1,
+	InReview:        2,
+	ReviewOK:        3,
+	ReviewNotOK:     4,
+	DevelopmentDone: 5,
+}
+
 func TestWebhookPublisher_Register(t *testing.T) {
-	publisher := NewPublisher()
+	publisher := NewPublisher(&transitions)
 	listener := &mockListener{}
 
 	publisher.Register(listener)
@@ -33,7 +42,7 @@ var successTestCases = []SuccessTestCase{
 		},
 		expected: dispatcher.Event{
 			TicketNumber: "TEST-1000",
-			StatusID:     ReadyForReview,
+			StatusID:     transitions.ReadyForReview,
 		},
 	},
 	{
@@ -46,7 +55,7 @@ var successTestCases = []SuccessTestCase{
 		},
 		expected: dispatcher.Event{
 			TicketNumber: "TEST-1000",
-			StatusID:     ReadyForReview,
+			StatusID:     transitions.ReadyForReview,
 		},
 	},
 	{
@@ -59,7 +68,7 @@ var successTestCases = []SuccessTestCase{
 		},
 		expected: dispatcher.Event{
 			TicketNumber: "TEST-1000",
-			StatusID:     DevelopmentDone,
+			StatusID:     transitions.DevelopmentDone,
 		},
 	},
 	{
@@ -72,7 +81,7 @@ var successTestCases = []SuccessTestCase{
 		},
 		expected: dispatcher.Event{
 			TicketNumber: "TEST-1000",
-			StatusID:     ReviewOK,
+			StatusID:     transitions.ReviewOK,
 		},
 	},
 	{
@@ -85,7 +94,7 @@ var successTestCases = []SuccessTestCase{
 		},
 		expected: dispatcher.Event{
 			TicketNumber: "TEST-1000",
-			StatusID:     InReview,
+			StatusID:     transitions.InReview,
 		},
 	},
 	{
@@ -98,7 +107,7 @@ var successTestCases = []SuccessTestCase{
 		},
 		expected: dispatcher.Event{
 			TicketNumber: "TEST-1000",
-			StatusID:     ReviewNotOK,
+			StatusID:     transitions.ReviewNotOK,
 		},
 	},
 	{
@@ -121,7 +130,7 @@ var successTestCases = []SuccessTestCase{
 		},
 		expected: dispatcher.Event{
 			TicketNumber:  "TEST-1000",
-			StatusID:      InReview,
+			StatusID:      transitions.InReview,
 			ReviewerEmail: "test@example.org",
 		},
 	},
@@ -129,7 +138,7 @@ var successTestCases = []SuccessTestCase{
 
 func TestWebhookPublisher_ProcessWebhook(t *testing.T) {
 	for _, testCase := range successTestCases {
-		publisher := NewPublisher()
+		publisher := NewPublisher(&transitions)
 		listener := &mockListener{}
 		dispatcherEvent := &dispatcher.Event{}
 
@@ -199,7 +208,7 @@ var errorTestCases = []ErrorTestCase{
 
 func TestWebhookPublisher_ProcessWebhook_ReturnsError_OnErrorCases(t *testing.T) {
 	for _, testCase := range errorTestCases {
-		publisher := NewPublisher()
+		publisher := NewPublisher(&transitions)
 		listener := &mockListener{}
 		dispatcherEvent := &dispatcher.Event{}
 
