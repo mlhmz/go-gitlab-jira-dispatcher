@@ -5,81 +5,13 @@ import (
 )
 
 const ReadyForReview = 1
-const InReview = 1
-const DevelopmentDone = 1
-const ReviewOK = 1
-const ReviewNotOK = 1
+const InReview = 2
+const DevelopmentDone = 3
+const ReviewOK = 4
+const ReviewNotOK = 5
 
 type Action interface {
 	Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event
-}
-
-type OpenAction struct{}
-
-func (a *OpenAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
-	return &dispatcher.Event{
-		TicketNumber: ticketNumber,
-		Status:       ReadyForReview,
-	}
-}
-
-type ReopenAction struct{}
-
-func (a *ReopenAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
-	return &dispatcher.Event{
-		TicketNumber: ticketNumber,
-		Status:       ReadyForReview,
-	}
-}
-
-type UpdateAction struct{}
-
-func (a *UpdateAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
-	if len(event.Changes.Reviewers.Previous) == 0 && len(event.Changes.Reviewers.Current) > 0 {
-		return &dispatcher.Event{
-			TicketNumber:  ticketNumber,
-			Status:        InReview,
-			ReviewerEmail: event.Changes.Reviewers.Current[0].Email,
-		}
-	} else {
-		return nil
-	}
-}
-
-type MergeAction struct{}
-
-func (a *MergeAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
-	return &dispatcher.Event{
-		TicketNumber: ticketNumber,
-		Status:       DevelopmentDone,
-	}
-}
-
-type ApprovedAction struct{}
-
-func (a *ApprovedAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
-	return &dispatcher.Event{
-		TicketNumber: ticketNumber,
-		Status:       ReviewOK,
-	}
-}
-
-type UnapprovedAction struct{}
-
-func (a *UnapprovedAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
-	return &dispatcher.Event{
-		TicketNumber: ticketNumber,
-		Status:       InReview,
-	}
-}
-
-type CloseAction struct{}
-
-func (a *CloseAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
-	return &dispatcher.Event{
-		TicketNumber: ticketNumber,
-		Status:       ReviewNotOK,
-	}
 }
 
 func NewAction(action string) Action {
@@ -100,5 +32,76 @@ func NewAction(action string) Action {
 		return &CloseAction{}
 	default:
 		return nil
+	}
+}
+
+type OpenAction struct{}
+
+func (a *OpenAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
+	return &dispatcher.Event{
+		TicketNumber: ticketNumber,
+		StatusID:     ReadyForReview,
+	}
+}
+
+type ReopenAction struct{}
+
+func (a *ReopenAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
+	return &dispatcher.Event{
+		TicketNumber: ticketNumber,
+		StatusID:     ReadyForReview,
+	}
+}
+
+type UpdateAction struct{}
+
+// GitLab will send a merge request event for every update that is triggered (e.g. changing the title)
+// In order to detect if a reviewer is actually added to the merge request, we need to check first, if there
+// was no reviewer before and if there is a reviewer now.
+func (a *UpdateAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
+	if len(event.Changes.Reviewers.Previous) == 0 && len(event.Changes.Reviewers.Current) > 0 {
+		return &dispatcher.Event{
+			TicketNumber:  ticketNumber,
+			StatusID:      InReview,
+			ReviewerEmail: event.Changes.Reviewers.Current[0].Email,
+		}
+	} else {
+		return nil
+	}
+}
+
+type MergeAction struct{}
+
+func (a *MergeAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
+	return &dispatcher.Event{
+		TicketNumber: ticketNumber,
+		StatusID:     DevelopmentDone,
+	}
+}
+
+type ApprovedAction struct{}
+
+func (a *ApprovedAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
+	return &dispatcher.Event{
+		TicketNumber: ticketNumber,
+		StatusID:     ReviewOK,
+	}
+}
+
+type UnapprovedAction struct{}
+
+func (a *UnapprovedAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
+	return &dispatcher.Event{
+		TicketNumber: ticketNumber,
+		StatusID:     InReview,
+	}
+}
+
+type CloseAction struct{}
+
+func (a *CloseAction) Execute(ticketNumber string, event *MergeRequestEvent) *dispatcher.Event {
+	return &dispatcher.Event{
+		TicketNumber: ticketNumber,
+		StatusID:     ReviewNotOK,
 	}
 }

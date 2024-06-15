@@ -29,10 +29,11 @@ func main() {
 
 		if result != nil {
 			log.Infof("Dispatched event for the ticket '%s' with the status '%s' and the reviewer email '%s'",
-				result.TicketNumber, result.Status, result.ReviewerEmail)
+				result.TicketNumber, result.StatusID, result.ReviewerEmail)
+			return c.JSON(result)
 		}
 
-		return c.SendStatus(200)
+		return c.SendStatus(400)
 	})
 
 	app.Listen(":3000")
