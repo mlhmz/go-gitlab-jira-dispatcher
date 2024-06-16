@@ -47,13 +47,50 @@ func main() {
 		}, "layouts/main")
 	})
 
-	app.Get("/create", func(c *fiber.Ctx) error {
-		return c.Render("create", fiber.Map{}, "layouts/main")
+	app.Post("/config", func(c *fiber.Ctx) error {
+		var config store.WebhookConfig
+
+		if err := c.BodyParser(&config); err != nil {
+			formattedError := fmt.Errorf("failed to parse webhook error: %s", err)
+			log.Error(formattedError)
+			return c.Status(500).SendString(formattedError.Error())
+		}
+
+		if err := webhookStore.CreateWebhookConfig(&config); err != nil {
+			log.Warn(err)
+			return c.Status(400).SendString(err.Error())
+		}
+
+		return c.Render("config", fiber.Map{
+			"Config": config,
+		})
 	})
 
-	webhookApi := app.Group("/webhook")
+	app.Get("/config/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		uuid, err := uuid.Parse(id)
 
-	webhookApi.Post("/:id", func(c *fiber.Ctx) error {
+		if err != nil {
+			log.Warn(err)
+			return c.Status(400).SendString(err.Error())
+		}
+
+		var config store.WebhookConfig
+		if err := webhookStore.GetWebhookConfig(uuid, &config); err != nil {
+			log.Warn(err)
+			return c.Status(404).SendString(err.Error())
+		}
+
+		return c.Render("config", fiber.Map{
+			"Config": config,
+		})
+	})
+
+	app.Get("/create", func(c *fiber.Ctx) error {
+		return c.Render("create", fiber.Map{})
+	})
+
+	app.Post("/webhook/:id", func(c *fiber.Ctx) error {
 		id := c.Params("id")
 		uuid, err := uuid.Parse(id)
 
@@ -84,7 +121,7 @@ func main() {
 		return c.JSON(result)
 	})
 
-	configApi := app.Group("/config")
+	configApi := app.Group("/api/v1/config")
 
 	configApi.Get("/:id", func(c *fiber.Ctx) error {
 		id := c.Params("id")

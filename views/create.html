@@ -1,4 +1,5 @@
-<form hx-post="/config" class="d-flex flex-column gap-3">
+<form hx-post="/config" class="d-flex flex-column gap-3 my-3">
+  <h3>Create a webhook</h3>
   <div class="">
     <label>Title</label>
     <input id="title" name="title" class="form-control" placeholder="My projects ..."></input>
@@ -10,23 +11,23 @@
   <h3>Transitions</h3>
   <div class="row">
     <div class="col col-lg-3"><label>Ready for Review</label></div>
-    <div class="col"><input id="ready_for_review" name="ready_for_review" class="form-control"></input></div>
+    <div class="col"><input id="ready_for_review" name="ready_for_review" class="form-control" type="number"></input></div>
   </div>
   <div class="row">
     <div class="col col-lg-3"><label>In Review</label></div>
-    <div class="col"><input id="in_review" name="in_review" class="form-control"></input></div>
+    <div class="col"><input id="in_review" name="in_review" class="form-control" type="number"></input></div>
   </div>
   <div class="row">
     <div class="col col-lg-3"><label>Review OK</label></div>
-    <div class="col"><input id="review_ok" name="review_ok" class="form-control"></input></div>
+    <div class="col"><input id="review_ok" name="review_ok" class="form-control" type="number"></input></div>
   </div>
   <div class="row">
     <div class="col col-lg-3"><label>Review not OK</label></div>
-    <div class="col"><input id="review_not_ok" name="review_not_ok" class="form-control"></input></div>
+    <div class="col"><input id="review_not_ok" name="review_not_ok" class="form-control" type="number"></input></div>
   </div>
   <div class="row">
     <div class="col col-lg-3"><label>Development done</label></div>
-    <div class="col"><input id="development_done" name="development_done" class="form-control"></input></div>
+    <div class="col"><input id="development_done" name="development_done" class="form-control" type="number"></input></div>
   </div>
   <button type="submit" class="btn btn-success align-self-center">Create</button>
 </form>

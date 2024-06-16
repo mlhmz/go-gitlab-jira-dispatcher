@@ -1,0 +1,46 @@
+<form hx-put="/config" class="d-flex flex-column gap-3 my-3">
+  <h3>{{.Config.Title}}</h3>
+  <div>
+    <label>ID</label>
+    <input disabled id="id" name="id" class="form-control" value="{{.Config.ID}}"></input>
+  </div>
+  <div class="">
+    <label>Title</label>
+    <input id="title" name="title" class="form-control" placeholder="My projects ..." value="{{.Config.Title}}"></input>
+  </div>
+  <div>
+    <div><label>Projects</label></div>
+    <div><input id="projects" name="projects" class="form-control"
+        placeholder="JIRA Project Key comma seperated (e.g. JIRA,KAN,SCRUM)" value="{{.Config.Projects}}"></input></div>
+  </div>
+  <h3>Transitions</h3>
+  <div class="row">
+    <div class="col col-lg-3"><label>Ready for Review</label></div>
+    <div class="col"><input id="ready_for_review" name="ready_for_review" class="form-control"
+        value="{{.Config.ReadyForReview}}"></input></div>
+  </div>
+  <div class="row">
+    <div class="col col-lg-3"><label>In Review</label></div>
+    <div class="col"><input id="in_review" name="in_review" class="form-control" value="{{.Config.InReview}}"></input>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col col-lg-3"><label>Review OK</label></div>
+    <div class="col"><input id="review_ok" name="review_ok" class="form-control" value="{{.Config.ReviewOK}}"></input>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col col-lg-3"><label>Review not OK</label></div>
+    <div class="col"><input id="review_not_ok" name="review_not_ok" class="form-control"
+        value="{{.Config.ReviewNotOK}}"></input></div>
+  </div>
+  <div class="row">
+    <div class="col col-lg-3"><label>Development done</label></div>
+    <div class="col"><input id="development_done" name="development_done" class="form-control"
+        value="{{.Config.DevelopmentDone}}"></input></div>
+  </div>
+  <div class="self-center d-flex justify-content-center gap-3">
+    <button type="submit" class="btn btn-success">Update</button>
+    <button class="btn btn-danger" hx-delete="/api/v1/config/{{.Config.ID}}">Delete</button>
+  </div>
+</form>
