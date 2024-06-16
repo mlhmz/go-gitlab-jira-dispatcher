@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
+	"github.com/gofiber/template/html/v2"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/dispatcher"
@@ -17,7 +18,11 @@ import (
 )
 
 func main() {
-	app := fiber.New()
+	templateEngine := html.New("./views", ".html")
+
+	app := fiber.New(fiber.Config{
+		Views: templateEngine,
+	})
 
 	var jiraUrl string
 	var jiraApiToken string
@@ -29,6 +34,22 @@ func main() {
 
 	publisher := gitlab.NewPublisher()
 	publisher.Register(jira.NewJiraListener(jirav2.NewRestClient(jiraUrl, jiraApiToken)))
+
+	app.Get("", func(c *fiber.Ctx) error {
+		var configs []store.WebhookConfig
+		if err := webhookStore.GetAllWebhookConfigs(&configs); err != nil {
+			log.Warn(err)
+			return c.Status(400).SendString(err.Error())
+		}
+
+		return c.Render("index", fiber.Map{
+			"Configs": configs,
+		}, "layouts/main")
+	})
+
+	app.Get("/create", func(c *fiber.Ctx) error {
+		return c.Render("create", fiber.Map{}, "layouts/main")
+	})
 
 	webhookApi := app.Group("/webhook")
 
