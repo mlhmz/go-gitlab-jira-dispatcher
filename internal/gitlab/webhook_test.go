@@ -7,7 +7,7 @@ import (
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/store"
 )
 
-var transitions = store.Transitions{
+var config = store.WebhookConfig{
 	ReadyForReview:  1,
 	InReview:        2,
 	ReviewOK:        3,
@@ -42,7 +42,7 @@ var successTestCases = []SuccessTestCase{
 		},
 		expected: dispatcher.Event{
 			TicketNumber: "TEST-1000",
-			StatusID:     transitions.ReadyForReview,
+			StatusID:     config.ReadyForReview,
 		},
 	},
 	{
@@ -55,7 +55,7 @@ var successTestCases = []SuccessTestCase{
 		},
 		expected: dispatcher.Event{
 			TicketNumber: "TEST-1000",
-			StatusID:     transitions.ReadyForReview,
+			StatusID:     config.ReadyForReview,
 		},
 	},
 	{
@@ -68,7 +68,7 @@ var successTestCases = []SuccessTestCase{
 		},
 		expected: dispatcher.Event{
 			TicketNumber: "TEST-1000",
-			StatusID:     transitions.DevelopmentDone,
+			StatusID:     config.DevelopmentDone,
 		},
 	},
 	{
@@ -81,7 +81,7 @@ var successTestCases = []SuccessTestCase{
 		},
 		expected: dispatcher.Event{
 			TicketNumber: "TEST-1000",
-			StatusID:     transitions.ReviewOK,
+			StatusID:     config.ReviewOK,
 		},
 	},
 	{
@@ -94,7 +94,7 @@ var successTestCases = []SuccessTestCase{
 		},
 		expected: dispatcher.Event{
 			TicketNumber: "TEST-1000",
-			StatusID:     transitions.InReview,
+			StatusID:     config.InReview,
 		},
 	},
 	{
@@ -107,7 +107,7 @@ var successTestCases = []SuccessTestCase{
 		},
 		expected: dispatcher.Event{
 			TicketNumber: "TEST-1000",
-			StatusID:     transitions.ReviewNotOK,
+			StatusID:     config.ReviewNotOK,
 		},
 	},
 	{
@@ -130,7 +130,7 @@ var successTestCases = []SuccessTestCase{
 		},
 		expected: dispatcher.Event{
 			TicketNumber:  "TEST-1000",
-			StatusID:      transitions.InReview,
+			StatusID:      config.InReview,
 			ReviewerEmail: "test@example.org",
 		},
 	},
@@ -144,7 +144,7 @@ func TestWebhookPublisher_ProcessWebhook(t *testing.T) {
 
 		publisher.Register(listener)
 
-		err := publisher.ProcessWebhook(&testCase.input, dispatcherEvent, &transitions)
+		err := publisher.ProcessWebhook(&testCase.input, dispatcherEvent, &config)
 
 		if err != nil {
 			t.Errorf("Expected no error, got %v", err)
@@ -214,7 +214,7 @@ func TestWebhookPublisher_ProcessWebhook_ReturnsError_OnErrorCases(t *testing.T)
 
 		publisher.Register(listener)
 
-		err := publisher.ProcessWebhook(&testCase.input, dispatcherEvent, &transitions)
+		err := publisher.ProcessWebhook(&testCase.input, dispatcherEvent, &config)
 
 		if err == nil {
 			t.Errorf("Expected an error, got %v", err)

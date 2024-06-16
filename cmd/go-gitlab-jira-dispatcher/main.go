@@ -6,12 +6,14 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/dispatcher"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/gitlab"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/jira"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/jira/jirav2"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/store"
+	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/store/sqlite"
 )
 
 func main() {
@@ -22,17 +24,29 @@ func main() {
 
 	loadEnvironment(&jiraUrl, &jiraApiToken)
 
-	transitions := store.Transitions{
-		ReadyForReview:  2,
-		InReview:        3,
-		DevelopmentDone: 31,
-		ReviewOK:        5,
-		ReviewNotOK:     4,
-	}
+	db := store.NewDatabase()
+	var webhookStore store.WebhookConfigStore = sqlite.NewSqliteWebhookStore(db)
+
 	publisher := gitlab.NewPublisher()
 	publisher.Register(jira.NewJiraListener(jirav2.NewRestClient(jiraUrl, jiraApiToken)))
 
-	app.Post("/webhook", func(c *fiber.Ctx) error {
+	webhookApi := app.Group("/webhook")
+
+	webhookApi.Post("/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		uuid, err := uuid.Parse(id)
+
+		if err != nil {
+			log.Warn(err)
+			return c.Status(400).SendString(err.Error())
+		}
+
+		var config store.WebhookConfig
+		if err := webhookStore.GetWebhookConfig(uuid, &config); err != nil {
+			log.Warn(err)
+			return c.Status(404).SendString(err.Error())
+		}
+
 		var event gitlab.MergeRequestEvent
 
 		if err := c.BodyParser(&event); err != nil {
@@ -42,11 +56,91 @@ func main() {
 		}
 
 		result := dispatcher.Event{}
-		if err := publisher.ProcessWebhook(&event, &result, &transitions); err != nil {
+		if err := publisher.ProcessWebhook(&event, &result, &config); err != nil {
 			log.Warn(err)
 			return c.Status(400).SendString(err.Error())
 		}
 		return c.JSON(result)
+	})
+
+	configApi := app.Group("/config")
+
+	configApi.Get("/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		uuid, err := uuid.Parse(id)
+
+		if err != nil {
+			log.Warn(err)
+			return c.Status(400).SendString(err.Error())
+		}
+
+		var config store.WebhookConfig
+		if err := webhookStore.GetWebhookConfig(uuid, &config); err != nil {
+			log.Warn(err)
+			return c.Status(404).SendString(err.Error())
+		}
+
+		return c.JSON(config)
+	})
+
+	configApi.Get("", func(c *fiber.Ctx) error {
+		var configs []store.WebhookConfig
+		if err := webhookStore.GetAllWebhookConfigs(&configs); err != nil {
+			log.Warn(err)
+			return c.Status(400).SendString(err.Error())
+		}
+
+		return c.JSON(configs)
+	})
+
+	configApi.Post("", func(c *fiber.Ctx) error {
+		var config store.WebhookConfig
+
+		if err := c.BodyParser(&config); err != nil {
+			formattedError := fmt.Errorf("failed to parse webhook error: %s", err)
+			log.Error(formattedError)
+			return c.Status(500).SendString(formattedError.Error())
+		}
+
+		if err := webhookStore.CreateWebhookConfig(&config); err != nil {
+			log.Warn(err)
+			return c.Status(400).SendString(err.Error())
+		}
+
+		return c.JSON(config)
+	})
+
+	configApi.Put("", func(c *fiber.Ctx) error {
+		var config store.WebhookConfig
+		if err := c.BodyParser(&config); err != nil {
+			formattedError := fmt.Errorf("failed to parse webhook error: %s", err)
+			log.Error(formattedError)
+			return c.Status(500).SendString(formattedError.Error())
+		}
+
+		if err := webhookStore.UpdateWebhookConfig(&config); err != nil {
+			log.Warn(err)
+			return c.Status(400).SendString(err.Error())
+		}
+
+		return c.JSON(config)
+	})
+
+	configApi.Delete("/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		uuid, err := uuid.Parse(id)
+
+		if err != nil {
+			log.Warn(err)
+			return c.Status(400).SendString(err.Error())
+		}
+
+		if err := webhookStore.DeleteWebhookConfig(uuid); err != nil {
+			log.Warn(err)
+			return c.Status(400).SendString(err.Error())
+		}
+
+		return c.SendStatus(204)
 	})
 
 	app.Listen(":3000")
