@@ -47,20 +47,34 @@ func main() {
 		}, "layouts/main")
 	})
 
-	app.Post("/config", func(c *fiber.Ctx) error {
-		var config store.WebhookConfig
+	app.Get("/config-list", func(c *fiber.Ctx) error {
+		var configs []store.WebhookConfig
+		if err := webhookStore.GetAllWebhookConfigs(&configs); err != nil {
+			log.Warn(err)
+			return c.Status(400).SendString(err.Error())
+		}
 
-		if err := c.BodyParser(&config); err != nil {
+		return c.Render("config-list", fiber.Map{
+			"Configs": configs,
+		})
+	})
+
+	app.Post("/config", func(c *fiber.Ctx) error {
+		var submission store.WebhookConfigSubmission
+
+		if err := c.BodyParser(&submission); err != nil {
 			formattedError := fmt.Errorf("failed to parse webhook error: %s", err)
 			log.Error(formattedError)
 			return c.Status(500).SendString(formattedError.Error())
 		}
 
-		if err := webhookStore.CreateWebhookConfig(&config); err != nil {
+		config := store.MapSubmission(&submission)
+		if err := webhookStore.CreateWebhookConfig(config); err != nil {
 			log.Warn(err)
 			return c.Status(400).SendString(err.Error())
 		}
 
+		c.Response().Header.Add("HX-Trigger", "reloadConfig")
 		return c.Render("config", fiber.Map{
 			"Config": config,
 		})
@@ -198,6 +212,7 @@ func main() {
 			return c.Status(400).SendString(err.Error())
 		}
 
+		c.Response().Header.Add("HX-Trigger", "reloadConfig,deleteConfig")
 		return c.SendStatus(204)
 	})
 

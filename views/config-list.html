@@ -1,0 +1,8 @@
+<ul class="list-group overflow-auto">
+  {{range $val := .Configs}}
+    <li class="list-group-item bg-primary-subtle-hover" hx-get="/config/{{$val.ID}}" hx-target="#content">
+      <p class="fs-4 m-0">{{$val.Title}}</p>
+      <p class="fs-6 m-0 text-secondary">{{$val.Projects}}</p>
+    </li>
+  {{end}}
+</ul>

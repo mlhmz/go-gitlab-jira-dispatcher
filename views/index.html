@@ -2,11 +2,4 @@
   <h2>Webhooks</h2>
   <a hx-get="/create" hx-target="#content" hx class="btn btn-success">Create</a>
 </div>
-<ul class="list-group">
-  {{range $val := .Configs}}
-    <li class="list-group-item bg-primary-subtle-hover" hx-get="/config/{{$val.ID}}" hx-target="#content">
-      <p class="fs-4 m-0">{{$val.Title}}</p>
-      <p class="fs-6 m-0 text-secondary">{{$val.Projects}}</p>
-    </li>
-  {{end}}
-</ul>
+<div id="config-list" hx-get="/config-list" hx-trigger="load,reloadConfig from:body"></div>
