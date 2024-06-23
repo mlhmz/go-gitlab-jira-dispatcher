@@ -2,6 +2,7 @@ package gitlab
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/dispatcher"
@@ -29,6 +30,11 @@ func (publisher *WebhookPublisher) ProcessWebhook(mrEvent *MergeRequestEvent, di
 	var ticketNumber string
 	if err := ResolveJiraTicketFromTitle(mrEvent.ObjectAttributes.Title, &ticketNumber); err != nil {
 		return err
+	}
+
+	projects := strings.Split(config.Projects, ",")
+	if !IsTicketNumberWhitelisted(&projects, &ticketNumber) {
+		return fmt.Errorf("'%s' is not allowed for this config, only [%s] are allowed", ticketNumber, projects)
 	}
 
 	action := NewAction(mrEvent.ObjectAttributes.Action)

@@ -3,6 +3,7 @@ package gitlab
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 func ResolveJiraTicketFromTitle(title string, ticketNumber *string) error {
@@ -14,4 +15,14 @@ func ResolveJiraTicketFromTitle(title string, ticketNumber *string) error {
 	} else {
 		return fmt.Errorf("no Jira ticket found in the title '%s'", title)
 	}
+}
+
+func IsTicketNumberWhitelisted(projects *[]string, ticketNumber *string) bool {
+	project := strings.Split(*ticketNumber, "-")[0]
+	for _, entry := range *projects {
+		if entry == project {
+			return true
+		}
+	}
+	return false
 }

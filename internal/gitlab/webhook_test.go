@@ -13,6 +13,7 @@ var config = store.WebhookConfig{
 	ReviewOK:        3,
 	ReviewNotOK:     4,
 	DevelopmentDone: 5,
+	Projects:        "TEST",
 }
 
 func TestWebhookPublisher_Register(t *testing.T) {
