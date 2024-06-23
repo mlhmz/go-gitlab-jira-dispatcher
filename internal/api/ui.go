@@ -5,35 +5,30 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
-	"github.com/google/uuid"
 	"github.com/mlhmz/go-gitlab-jira-dispatcher/internal/store"
 )
 
+// The UI of the application is hypermedia-driven with htmx.
+// So instead of return json, actual, already filled, html is returned.
 func AddUIRoutes(router fiber.Router, webhookStore store.WebhookConfigStore) {
-	router.Get("", func(c *fiber.Ctx) error {
-		var configs []store.WebhookConfig
-		if err := webhookStore.GetAllWebhookConfigs(&configs); err != nil {
-			log.Warn(err)
-			return c.Status(400).SendString(err.Error())
-		}
+	commons := newCommons(&webhookStore)
 
-		return c.Render("index", fiber.Map{
-			"Configs": configs,
-		}, "layouts/main")
+	router.Get("", func(c *fiber.Ctx) error {
+		return c.Render("index", fiber.Map{}, "layouts/main")
 	})
 
 	router.Get("/config-list", func(c *fiber.Ctx) error {
 		var configs []store.WebhookConfig
-		if err := webhookStore.GetAllWebhookConfigs(&configs); err != nil {
-			log.Warn(err)
-			return c.Status(400).SendString(err.Error())
+		if err := commons.getAllWebhookConfigs(c, &configs); err != nil {
+			return err
 		}
-
 		return c.Render("config-list", fiber.Map{
 			"Configs": configs,
 		})
 	})
 
+	// this post is a htmx specific post, as htmx is following the official html form conventions,
+	// integers are submitted as strings and have to be parsed in the backend
 	router.Post("/config", func(c *fiber.Ctx) error {
 		var submission store.WebhookConfigSubmission
 
@@ -56,20 +51,10 @@ func AddUIRoutes(router fiber.Router, webhookStore store.WebhookConfigStore) {
 	})
 
 	router.Get("/config/:id", func(c *fiber.Ctx) error {
-		id := c.Params("id")
-		uuid, err := uuid.Parse(id)
-
-		if err != nil {
-			log.Warn(err)
-			return c.Status(400).SendString(err.Error())
-		}
-
 		var config store.WebhookConfig
-		if err := webhookStore.GetWebhookConfig(uuid, &config); err != nil {
-			log.Warn(err)
-			return c.Status(404).SendString(err.Error())
+		if err := commons.getWebhookConfigByCtx(c, &config); err != nil {
+			return err
 		}
-
 		return c.Render("config", fiber.Map{
 			"Config": config,
 		})
@@ -82,19 +67,9 @@ func AddUIRoutes(router fiber.Router, webhookStore store.WebhookConfigStore) {
 	// In order to remove an element with htmx on delete return 200
 	// with an empty body
 	router.Delete("/config/:id", func(c *fiber.Ctx) error {
-		id := c.Params("id")
-		uuid, err := uuid.Parse(id)
-
-		if err != nil {
-			log.Warn(err)
-			return c.Status(400).SendString(err.Error())
+		if err := commons.deleteWebhookConfigByCtx(c); err != nil {
+			return err
 		}
-
-		if err := webhookStore.DeleteWebhookConfig(uuid); err != nil {
-			log.Warn(err)
-			return c.Status(400).SendString(err.Error())
-		}
-
 		c.Response().Header.Add("HX-Trigger", "reloadConfig")
 		return c.SendString("")
 	})
