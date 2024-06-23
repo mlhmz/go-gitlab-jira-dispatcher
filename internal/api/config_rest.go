@@ -85,7 +85,7 @@ func AddConfigRestRoutes(router fiber.Router, webhookStore store.WebhookConfigSt
 			return c.Status(400).SendString(err.Error())
 		}
 
-		c.Response().Header.Add("HX-Trigger", "reloadConfig,deleteConfig")
+		c.Response().Header.Add("HX-Trigger", "reloadConfig")
 		return c.SendStatus(204)
 	})
 }

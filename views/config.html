@@ -41,6 +41,6 @@
   </div>
   <div class="self-center d-flex justify-content-center gap-3">
     <button type="submit" class="btn btn-success">Update</button>
-    <button class="btn btn-danger" hx-delete="/api/v1/config/{{.Config.ID}}" hx-confirm="Are you sure?">Delete</button>
+    <button class="btn btn-danger" hx-delete="/config/{{.Config.ID}}" hx-confirm="Are you sure?" hx-target="#content">Delete</button>
   </div>
 </form>

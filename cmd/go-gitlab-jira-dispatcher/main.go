@@ -39,8 +39,8 @@ func main() {
 	webhook := app.Group("webhook")
 	api.AddWebhookRoutes(webhook, webhookStore, *publisher)
 
-	configApi := app.Group("/api/v1/config")
-	api.AddConfigRestRoutes(configApi, webhookStore)
+	configRest := app.Group("/api/v1/config")
+	api.AddConfigRestRoutes(configRest, webhookStore)
 
 	app.Listen(":3000")
 }

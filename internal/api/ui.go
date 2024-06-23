@@ -78,4 +78,24 @@ func AddUIRoutes(router fiber.Router, webhookStore store.WebhookConfigStore) {
 	router.Get("/create", func(c *fiber.Ctx) error {
 		return c.Render("create", fiber.Map{})
 	})
+
+	// In order to remove an element with htmx on delete return 200
+	// with an empty body
+	router.Delete("/config/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		uuid, err := uuid.Parse(id)
+
+		if err != nil {
+			log.Warn(err)
+			return c.Status(400).SendString(err.Error())
+		}
+
+		if err := webhookStore.DeleteWebhookConfig(uuid); err != nil {
+			log.Warn(err)
+			return c.Status(400).SendString(err.Error())
+		}
+
+		c.Response().Header.Add("HX-Trigger", "reloadConfig")
+		return c.SendString("")
+	})
 }
