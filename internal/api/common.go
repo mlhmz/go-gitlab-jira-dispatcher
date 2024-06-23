@@ -1,8 +1,6 @@
 package api
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/google/uuid"
@@ -42,20 +40,6 @@ func (c *commons) getWebhookConfigByCtx(ctx *fiber.Ctx, config *store.WebhookCon
 	if err := c.webhookStore.GetWebhookConfig(uuid, config); err != nil {
 		log.Warn(err)
 		return ctx.Status(404).SendString(err.Error())
-	}
-	return nil
-}
-
-func (c *commons) putWebhookConfigByCtx(ctx *fiber.Ctx, config *store.WebhookConfig) error {
-	if err := ctx.BodyParser(config); err != nil {
-		formattedError := fmt.Errorf("failed to parse webhook error: %s", err)
-		log.Error(formattedError)
-		return ctx.Status(500).SendString(formattedError.Error())
-	}
-
-	if err := c.webhookStore.UpdateWebhookConfig(config); err != nil {
-		log.Warn(err)
-		return ctx.Status(400).SendString(err.Error())
 	}
 	return nil
 }

@@ -38,7 +38,7 @@ func AddUIRoutes(router fiber.Router, webhookStore store.WebhookConfigStore) {
 			return c.Status(500).SendString(formattedError.Error())
 		}
 
-		config := store.MapSubmission(&submission)
+		config := store.CreateFromSubmission(&submission)
 		if err := webhookStore.CreateWebhookConfig(config); err != nil {
 			log.Warn(err)
 			return c.Status(400).SendString(err.Error())
@@ -47,6 +47,31 @@ func AddUIRoutes(router fiber.Router, webhookStore store.WebhookConfigStore) {
 		c.Response().Header.Add("HX-Trigger", "reloadConfig")
 		return c.Render("config", fiber.Map{
 			"Config": config,
+		})
+	})
+
+	router.Put("/:id", func(c *fiber.Ctx) error {
+		var config store.WebhookConfig
+		if err := commons.getWebhookConfigByCtx(c, &config); err != nil {
+			return err
+		}
+
+		var submission store.WebhookConfigSubmission
+
+		if err := c.BodyParser(&submission); err != nil {
+			formattedError := fmt.Errorf("failed to parse webhook error: %s", err)
+			log.Error(formattedError)
+			return c.Status(500).SendString(formattedError.Error())
+		}
+
+		config.UpdateFromSubmission(&submission)
+		if err := webhookStore.UpdateWebhookConfig(&config); err != nil {
+			log.Warn(err)
+			return c.Status(400).SendString(err.Error())
+		}
+		return c.Render("config", fiber.Map{
+			"Config":  config,
+			"Message": fmt.Sprintf("The config with the id '%s' was successfully updated.", config.ID),
 		})
 	})
 

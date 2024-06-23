@@ -1,4 +1,9 @@
-<form hx-put="/config" class="d-flex flex-column gap-3 my-3">
+<form hx-put="/{{.Config.ID}}" hx-ext="json-enc" hx-target="#content" class="d-flex flex-column gap-3 my-3">
+  {{if .Message}}
+  <div class="alert alert-success" role="alert" id="editor-alert">
+    {{.Message}}
+  </div>
+  {{end}}
   <h3>{{.Config.Title}}</h3>
   <div>
     <label>ID</label>
@@ -41,6 +46,13 @@
   </div>
   <div class="self-center d-flex justify-content-center gap-3">
     <button type="submit" class="btn btn-success">Update</button>
-    <button class="btn btn-danger" hx-delete="/config/{{.Config.ID}}" hx-confirm="Are you sure?" hx-target="#content">Delete</button>
+    <button class="btn btn-danger" hx-delete="/config/{{.Config.ID}}" hx-confirm="Are you sure?"
+      hx-target="#content">Delete</button>
   </div>
 </form>
+<script>
+  // Delete all toast instances after 5 seconds
+  setTimeout(() => {
+    document.getElementById("editor-alert").remove();
+  }, 5000)
+</script>

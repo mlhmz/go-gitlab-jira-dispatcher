@@ -35,7 +35,7 @@ func (config *WebhookConfig) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-func MapSubmission(submission *WebhookConfigSubmission) *WebhookConfig {
+func CreateFromSubmission(submission *WebhookConfigSubmission) *WebhookConfig {
 	return &WebhookConfig{
 		Title:           submission.Title,
 		Projects:        submission.Projects,
@@ -45,6 +45,16 @@ func MapSubmission(submission *WebhookConfigSubmission) *WebhookConfig {
 		ReviewNotOK:     parseInt(submission.ReviewNotOK),
 		DevelopmentDone: parseInt(submission.DevelopmentDone),
 	}
+}
+
+func (config *WebhookConfig) UpdateFromSubmission(from *WebhookConfigSubmission) {
+	config.Title = from.Title
+	config.Projects = from.Projects
+	config.ReadyForReview = parseInt(from.ReadyForReview)
+	config.InReview = parseInt(from.InReview)
+	config.ReviewOK = parseInt(from.ReviewOK)
+	config.ReviewNotOK = parseInt(from.ReviewNotOK)
+	config.DevelopmentDone = parseInt(from.DevelopmentDone)
 }
 
 func parseInt(value string) int {
