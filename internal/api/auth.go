@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
@@ -12,11 +11,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func AddAuthToApp(app *fiber.App, db *gorm.DB) {
+func AddAuthToApp(app *fiber.App, db *gorm.DB, token auth.Token) {
 	cost := 10
 	var login auth.Login = auth.NewBCryptLogin(&cost)
-	signature := []byte("test-signature")
-	var token auth.Token = auth.NewJwtToken(&signature, time.Hour*1)
 
 	var userStore store.UserStore = sqlite.NewSqliteUserStore(db)
 
@@ -55,4 +52,15 @@ func AddAuthToApp(app *fiber.App, db *gorm.DB) {
 
 		return c.SendStatus(200)
 	})
+}
+
+func AuthMiddleware(token auth.Token) func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		tokenStr := c.Cookies("token")
+		if err := token.VerifyToken(&tokenStr); err != nil {
+			c.Response().Header.Add("WWW-Authenticate", err.Error())
+			c.SendStatus(401)
+		}
+		return c.Next()
+	}
 }
