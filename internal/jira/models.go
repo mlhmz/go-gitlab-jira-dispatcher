@@ -1,4 +1,4 @@
-package jirav2
+package jira
 
 type TransitionPayload struct {
 	Transition Transition `json:"transition"`

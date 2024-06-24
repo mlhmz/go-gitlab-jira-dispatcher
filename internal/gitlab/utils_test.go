@@ -32,21 +32,3 @@ func TestResolveJiraTicketFromTitle_ReturnsError_OnTitleNotContainingTicketNumbe
 		t.Error("ResolveJiraTicketFromTitle failed: expected an error, got nil")
 	}
 }
-
-func TestIsTicketNumberWhitelisted(t *testing.T) {
-	ticketNumber := "TEST-1234"
-	allowedProjects := &[]string{"NICE", "TEST", "WELL"}
-
-	if !gitlab.IsTicketNumberWhitelisted(allowedProjects, &ticketNumber) {
-		t.Error("IsTicketNumberWhitelisted failed: expected true, got false")
-	}
-}
-
-func TestIsTicketNumberWhitelisted_ReturnsFalse_OnNonAllowedProjectKey(t *testing.T) {
-	ticketNumber := "GITL-1234"
-	allowedProjects := &[]string{"NICE", "TEST", "WELL"}
-
-	if gitlab.IsTicketNumberWhitelisted(allowedProjects, &ticketNumber) {
-		t.Error("IsTicketNumberWhitelisted failed: expected false, got true")
-	}
-}
