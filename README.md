@@ -12,4 +12,4 @@
 * In order to get any assignments working, any actors in the Merge Request need to set their Mail to public 
 
 ## Package size
-![Alt text](image.png)
+![Alt text](image-1.png)
