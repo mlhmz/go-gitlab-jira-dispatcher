@@ -12,7 +12,7 @@ func NewDatabase() *gorm.DB {
 		panic(err)
 	}
 
-	if err := db.AutoMigrate(&WebhookConfig{}); err != nil {
+	if err := db.AutoMigrate(&WebhookConfig{}, &User{}); err != nil {
 		panic(err)
 	}
 

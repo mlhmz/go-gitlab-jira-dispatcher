@@ -8,6 +8,12 @@ import (
 	"gorm.io/gorm"
 )
 
+type User struct {
+	gorm.Model
+	Username     string `gorm:"uniqueIndex"`
+	PasswordHash string
+}
+
 type WebhookConfigSubmission struct {
 	Title           string `json:"title"`
 	ReadyForReview  string `json:"ready_for_review"`

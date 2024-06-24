@@ -33,6 +33,8 @@ func main() {
 	publisher := gitlab.NewPublisher()
 	publisher.Register(jira.NewJiraListener(jirav2.NewRestClient(jiraUrl, jiraApiToken)))
 
+	api.AddAuthToApp(app)
+
 	ui := app.Group("")
 	api.AddUIRoutes(ui, webhookStore)
 
