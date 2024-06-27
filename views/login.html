@@ -1,5 +1,5 @@
-<div id="login-form">
-    <form hx-post="/authenticate" hx-ext="json-enc" hx-target="#login-form"
+<div id="login-form" hx-replace-url="/">
+    <form hx-post="/authenticate" hx-ext="json-enc" hx-target="body"
         class="d-flex flex-column align-items-center w-100 gap-3 my-5">
         <h3>Login</h3>
         <div>

@@ -24,7 +24,7 @@ func AddUIRoutes(router fiber.Router, webhookStore store.WebhookConfigStore) {
 		}
 		return c.Render("config-list", fiber.Map{
 			"Configs": configs,
-		})
+		}, "layouts/app")
 	})
 
 	// this post is a htmx specific post, as htmx is following the official html form conventions,

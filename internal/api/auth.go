@@ -35,7 +35,6 @@ func (authApi *AuthApi) AddAuthToApp(app *fiber.App) {
 			return c.Render("login", fiber.Map{
 				"ErrorMsg": err.Error(),
 			})
-
 		}
 		return c.Redirect("/")
 	})

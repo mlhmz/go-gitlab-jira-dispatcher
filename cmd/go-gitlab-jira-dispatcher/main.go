@@ -42,6 +42,7 @@ func main() {
 
 	var token auth.Token = auth.NewJwtToken(&signature, time.Hour*1)
 	var login auth.Login = auth.NewBCryptLogin(&cost)
+
 	authApi := api.NewAuthApi(login, userStore, token, app)
 
 	authApi.AddAuthToApp(app)
