@@ -39,6 +39,11 @@ func (authApi *AuthApi) AddAuthToApp(app *fiber.App) {
 		return c.Redirect("/")
 	})
 
+	app.Post("/logout", func(c *fiber.Ctx) error {
+		c.ClearCookie("token")
+		return c.Redirect("/login")
+	})
+
 	app.Post("/api/login", func(c *fiber.Ctx) error {
 		if status, err := authApi.authenticateAndIssueToken(c); err != nil {
 			return c.Status(status).SendString(err.Error())

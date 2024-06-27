@@ -15,8 +15,10 @@
 
 <body>
   <nav class="navbar bg-primary">
-    <div class="container-fluid">
+    <div class="container-fluid justify-space-between">
       <a class="navbar-brand text-white" href="/">Go Gitlab Jira Dispatcher</a>
+      <a hx-post="/logout" class="text-light text-decoration-none mx-4" style="cursor:pointer"
+        hx-target="body">Logout</a>
     </div>
   </nav>
   {{embed}}
