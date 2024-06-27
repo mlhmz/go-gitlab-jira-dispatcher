@@ -32,5 +32,5 @@ func (userStore *SqliteUserStore) DeleteUser(username string) error {
 	if err := userStore.GetUser(username, &user); err != nil {
 		return err
 	}
-	return userStore.db.Delete(&store.User{}).Error
+	return userStore.db.Delete(&user).Error
 }
