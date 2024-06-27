@@ -1,0 +1,18 @@
+<div id="login-form">
+    <form hx-post="/authenticate" hx-ext="json-enc" hx-target="#login-form"
+        class="d-flex flex-column align-items-center w-100 gap-3 my-5">
+        <h3>Login</h3>
+        <div>
+            <div class="col col-lg-3"><label for="username">Username</label></div>
+            <div class="col"><input id="username" name="username" class="form-control"></input></div>
+        </div>
+        <div>
+            <div class="col col-lg-3"><label for="password">Password</label></div>
+            <div class="col"><input id="password" name="password" class="form-control" type="password"></input></div>
+        </div>
+        {{if .ErrorMsg}}
+        <p class="text-danger">{{.ErrorMsg}}</p>
+        {{end}}
+        <button type="submit" class="btn btn-success align-self-center">Login</button>
+    </form>
+</div>

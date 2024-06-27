@@ -26,41 +26,47 @@ func main() {
 
 	var jiraUrl string
 	var jiraApiToken string
+	var tokenSignature string
 
-	loadEnvironment(&jiraUrl, &jiraApiToken)
+	loadEnvironment(&jiraUrl, &jiraApiToken, &tokenSignature)
 
 	db := store.NewDatabase()
 	var webhookStore store.WebhookConfigStore = sqlite.NewSqliteWebhookStore(db)
+	var userStore store.UserStore = sqlite.NewSqliteUserStore(db)
 
 	publisher := gitlab.NewPublisher()
 	publisher.Register(jira.NewJiraListener(jirav2.NewRestClient(jiraUrl, jiraApiToken)))
 
-	signature := []byte("test-signature")
+	signature := []byte(tokenSignature)
+	cost := 10
+
 	var token auth.Token = auth.NewJwtToken(&signature, time.Hour*1)
+	var login auth.Login = auth.NewBCryptLogin(&cost)
+	authApi := api.NewAuthApi(login, userStore, token, app)
 
-	authMiddleware := api.AuthMiddleware(token)
-
-	api.AddAuthToApp(app, db, token)
+	authApi.AddAuthToApp(app)
 
 	ui := app.Group("")
-	ui.Use(authMiddleware)
+	ui.Use(authApi.GetAuthRedirectMiddleware())
 	api.AddUIRoutes(ui, webhookStore)
 
 	webhook := app.Group("webhook")
 	api.AddWebhookRoutes(webhook, webhookStore, *publisher)
 
 	configRest := app.Group("/api/v1/config")
-	configRest.Use(authMiddleware)
+	configRest.Use(authApi.GetAuthMiddleware())
 	api.AddConfigRestRoutes(configRest, webhookStore)
 
 	app.Listen(":3000")
 }
 
-func loadEnvironment(jiraUrl *string, jiraApiToken *string) {
+func loadEnvironment(jiraUrl *string, jiraApiToken *string, tokenSignature *string) {
 	godotenv.Load(".env")
 
 	*jiraUrl = os.Getenv("JIRA_URL")
 	*jiraApiToken = os.Getenv("JIRA_API_TOKEN")
+	*tokenSignature = os.Getenv("TOKEN_SIGNATURE")
 
 	log.Debugf("Jira URL: %s, Jira Token: %s", *jiraUrl, *jiraApiToken)
+	log.Debugf("Token Signature: %s", *jiraUrl, *jiraApiToken)
 }
